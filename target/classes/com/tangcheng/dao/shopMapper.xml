@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tangcheng.dao.ShopMapper">
+
+	<cache readOnly="true"></cache>
+
+	<select id="selectfood" resultType="com.tangcheng.pojo.Food">
+		select f.* from food f
+		where f.shop_id=#{id}
+	</select>
+	
+	<select id="selectEnvironment" resultType="com.tangcheng.pojo.ShopEnvironment">
+	select sf.* from shop_face sf where sf.shop_id=#{id}
+	</select>
+	
+	<select id="selectlabel" resultType="com.tangcheng.pojo.Label">
+		select l.id,l.name from label l, shop_lab sl where sl.shopid=#{id} and sl.labelid=l.id
+	</select>
+	<select id="selectimg" resultType="com.tangcheng.pojo.ShopImg">
+		select img.* from shop_img img where img.shopid=#{id}
+	</select>
+	<select id="selectimg1" resultType="com.tangcheng.pojo.ShopImg">
+		select img.* from shop_img img ,shops s where img.shopid=s.id;
+	</select>
+	
+	<resultMap type="com.tangcheng.pojo.Shop" id="shopMapper">
+		<id column="id" property="id" />
+		<result column="name" property="name"/>
+		<result column="profile" property="profile"/>
+		<result column="address" property="address"/>
+		<result column="price" property="price"/>
+		<result column="longitude" property="longitude"/>
+		<result column="latitude" property="latitude"/>
+		<result column="phone" property="phone"/>
+		<result column="time" property="time"/>
+		<result column="userview" property="userview"/>
+		<result column="collection" property="collection"/>
+		<result column="star" property="star"/>
+		<result column="vidurl" property="vidurl"/>
+		<result column="region" property="region"/>
+		<result column="food_style" property="food_style"/>
+		<result column="wechat" property="wechat"/>
+		<result column="article" property="article"/>
+		<collection property="foods" ofType="food" column="id"
+			select="selectfood" />
+		<collection property="shopEnvironments" ofType="shopEnvironment" column="id"
+			select="selectEnvironment" />
+		<collection property="labels" ofType="label" column="id"
+			select="selectlabel"></collection>
+		<collection property="imgs" ofType="ShopImg" column="id"
+			select="selectimg"></collection>
+	</resultMap>
+	
+	<select id="selectAllById" resultMap="shopMapper"
+		parameterType="String">
+		select s.* from shops s where s.id=#{id}
+	</select>
+
+	<select id="selectCoordinate" resultType="java.util.HashMap">
+		select star, id, longitude, latitude from shops
+	</select>
+	<resultMap type="com.tangcheng.pojo.ShopIndex" id="indexMap">
+	<id column="id" property="id"/>
+	<result column="name" property="name"/>
+	<result column="star" property="star"/>
+	<result column="profile" property="profile"/>
+	<result column="region" property="region"/>
+	<result column="wechat" property="wechat"/>
+	<result column="phone" property="phone"/>
+	<result column="price" property="price"/>
+	<result column="longitude" property="longitude"/>
+	<result column="latitude" property="latitude"/>
+	<collection property="imgs" column="id" select="selectimg"></collection>
+	<collection property="labels" ofType="label" column="id"
+			select="selectlabel"></collection>
+	</resultMap>
+	<select id="selectBylevel" resultMap = "indexMap"
+		parameterType = "int">
+		select s.* from shops s where star=#{star}
+	</select>
+	<select id="selectShopIndex" resultMap = "indexMap">
+		select s.* from shops s
+	</select>
+	<select id="selectbylabels" resultMap="indexMap">
+		select s.* from shops s 
+		<where>
+		<if test="star !=0">
+		s.star =#{star}
+		</if>
+		<if test="region !=0">
+		and s.rgid = #{region}
+		</if>
+		<if test="others !=0">
+		and s.others = #{others}
+		</if>
+		<if test="fsid !=0">
+		and s.fsid=#{fsid}
+		</if>
+		</where>
+	</select>
+	<select id="selectbyFilter" resultMap="indexMap">
+	 SELECT 
+		s.*
+		FROM shops s, shop_lab sl 
+		<where> sl.shopid=s.id 
+		<if test="star !=null">
+		and sl.labelid=#{star}
+		</if>
+		<if test="region !=0 and region !=null">
+		and exists(select * from shop_lab where shopid = sl.shopid and labelid = #{region})
+		</if>
+		<if test="fsid !=0 and fsid !=null">
+		and exists(select * from shop_lab where shopid = sl.shopid and labelid = #{fsid})
+		</if>
+		<if test="pricelist !=null">
+		and exists(select * from shop_lab where shopid = sl.shopid and labelid in
+		<foreach collection="pricelist" item="price" index="index"  open="(" separator="," close="))">
+		#{price}
+		</foreach>
+		</if>
+		
+		<!-- <if test="price !=0 and price !=null">
+		and exists(select * from shop_lab where shopid = sl.shopid and labelid = #{price})
+		</if> -->
+		<if test="others !=0 and others !=null">
+		and exists(select * from shop_lab where shopid = sl.shopid and labelid =#{others})
+		</if>
+		</where>
+	</select>
+	<select id="selectall" resultType="com.tangcheng.pojo.Shop">
+	select * from shops
+	</select>
+	
+	<update id="updateCol">
+	update shops set collection=collection+1 where id=#{shopid}
+	</update>
+	
+	<update id="delecteCol">
+	update shops set collection=collection-1 where id=#{shopid} 
+	</update>	
+	<update id="updateView">
+	update shops set userview=userview+1 where id=#{shopid}
+	</update>
+	<select id = "selectbylabel" resultMap="indexMap">
+		SELECT 
+		s.*
+		FROM shops s, shop_lab sl 
+		WHERE sl.shopid=s.id and sl.labelid=#{id}
+	</select>
+	<resultMap type="com.tangcheng.pojo.ShopRank" id="rankMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="profile" property="profile"/>
+		<result column="userview" property="userview"/>
+		<result column="collection" property="collection"/>
+		<collection property="imgs" column="id" select="selectimg"></collection>
+	</resultMap>
+	<select id="selectforRank" resultMap="rankMap">
+		select s.* from shops s ORDER BY userview desc
+	</select>
+	<select id=""></select>
+</mapper>

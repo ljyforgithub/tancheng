@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+</head>
+<body>
+<div id="app" width>
+{{message}}
+<button v-on:click="test">test</button>
+
+</div>
+
+<script type="text/javascript">
+var app = new Vue({
+	  el: '#app',
+	  data: {
+	    message: 'Hello Vue!',
+	    rep:''
+	  },
+	  methods: {
+		  test: function () {
+			this.$http.get('index/test',{params:{'longitude':'116.361731','latitude':'23.569787'}}).then(response =>{
+				this.rep=response.body
+				})
+			}
+		  }  
+	})
+
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+       Copyright 2009-2016 the original author or authors.
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+          http://www.apache.org/licenses/LICENSE-2.0
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+-->
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tangcheng.dao.UserMapper">
+
+  <cache readOnly="true"/>
+
+  <select id="selectAllUser"
+          resultType="com.tangcheng.pojo.User">
+    select * from USER
+  </select>
+
+  <insert id="insertUser"
+          parameterType="com.tangcheng.pojo.User">
+          <selectKey keyProperty="id" resultType="String" order="BEFORE">
+          select replace(uuid(),'-','') from dual
+          </selectKey>
+    insert into USER (openid,name,restaurantId,id)
+    values (#{openid},#{name},#{restaurantId},#{id})
+  </insert>
+
+  <update id="updateUser"
+          parameterType="com.tangcheng.pojo.User">
+    update USER
+    set name=#{name},restaurantId=#{restaurantId},id=#{id}
+    where openid=#{openid}
+  </update>
+
+<select id="SelectUserById" resultType="com.tangcheng.pojo.User">
+select u.* from user u where u.id=#{id}</select>
+<select id="selectimg" resultType="com.tangcheng.pojo.ShopImg">
+	select img.* from shop_img img where img.shopid=#{id}
+</select>
+<resultMap type="com.tangcheng.pojo.UserCollect" id="userCollect">
+<id column="id" property="id"/>
+	<result column="name" property="name"/>
+	<result column="star" property="star"/>
+	<result column="region" property="region"/>
+	<result column="price" property="price"/>
+	<collection property="imgs" column="id" select="selectimg"></collection>
+</resultMap>
+<select id="findCollection" resultMap="userCollect">
+	select s.* from collection c, shops s where userid = #{id} and  c.shopid = s.id
+</select>
+<select id="findcollect" >
+	select c.shopid from collection c, user u where u.openid = #{id} and u.id = c.userid
+</select>
+</mapper>
